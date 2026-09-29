@@ -29,7 +29,7 @@ fun BarraNavegacao(telaAtual: String, aoMudarTela: (String) -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        // --- ÍCONE METAS ---
+        
         val corMetas = if (telaAtual in listOf("metas", "nova_meta", "editar_meta")) Color.Black else Color.Gray
         Box(
             modifier = Modifier
@@ -46,7 +46,7 @@ fun BarraNavegacao(telaAtual: String, aoMudarTela: (String) -> Unit) {
             )
         }
 
-        // --- ÍCONE PERFIL ---
+      
         val corPerfil = if (telaAtual == "perfil") Color.Black else Color.Gray
         Box(
             modifier = Modifier
