@@ -144,7 +144,7 @@ fun TelaNovaPoupanca(aoCriarMeta: (String, String, String, Double, Double) -> Un
     }
 }
 
-// --- FUNÇÃO PARA PEGAR O ÍCONE ---
+
 @Composable
 fun obterIconePorCategoria(categoria: String): Int {
     return when (categoria) {
