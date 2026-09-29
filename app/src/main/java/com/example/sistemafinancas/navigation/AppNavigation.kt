@@ -18,12 +18,13 @@ import com.example.sistemafinancas.screens.TelaEditarMeta
 import com.example.sistemafinancas.screens.TelaMetas
 import com.example.sistemafinancas.screens.TelaNovaPoupanca
 import com.example.sistemafinancas.screens.TelaPerfil
+import androidx.navigation.NavDestination.Companion.hasRoute
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val rotaAtual = navBackStackEntry?.destination?.route ?: Routes.LOGIN
+    val destino = navBackStackEntry?.destination
 
    
     var proximoId by remember { mutableIntStateOf(5) }
@@ -42,27 +43,27 @@ fun AppNavigation() {
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Box(modifier = Modifier.weight(1f)) {
-            NavHost(navController = navController, startDestination = Routes.LOGIN) {
+            NavHost(navController = navController, startDestination = Login) {
 
                 
-                composable(Routes.LOGIN) {
+                composable<Login> {
                     LoginScreen(
                         aoEntrar = { email, senha ->
                             if (usuariosCadastrados.containsKey(email) && usuariosCadastrados[email] == senha) {
-                                navController.navigate(Routes.METAS) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                navController.navigate(Metas) {
+                                    popUpTo<Login> { inclusive = true }
                                 }
                                 ""
                             } else {
                                 "E-mail ou senha inválidos."
                             }
                         },
-                        aoIrParaCadastro = { navController.navigate(Routes.CADASTRO) }
+                        aoIrParaCadastro = { navController.navigate(Cadastro) }
                     )
                 }
 
          
-                composable(Routes.CADASTRO) {
+                composable<Cadastro> {
                     CadastroScreen(
                         aoSalvar = { email, senha ->
                             if (email.isBlank() || senha.isBlank()) {
@@ -80,19 +81,19 @@ fun AppNavigation() {
                 }
 
             
-                composable(Routes.METAS) {
+                composable<Metas> {
                     TelaMetas(
                         metas = listaMetas,
-                        aoClicarNovaMeta = { navController.navigate(Routes.NOVA_META) },
+                        aoClicarNovaMeta = { navController.navigate(NovaMeta) },
                         aoClicarNaMeta = { metaClicada ->
                             metaEmEdicao = metaClicada
-                            navController.navigate(Routes.EDITAR_META)
+                            navController.navigate(EditarMeta)
                         }
                     )
                 }
 
               
-                composable(Routes.NOVA_META) {
+                composable<NovaMeta> {
                     TelaNovaPoupanca(
                         aoCriarMeta = { nome, categoria, tipo, guardado, objetivo ->
                             val novaMeta = Meta(
@@ -112,7 +113,7 @@ fun AppNavigation() {
                 }
 
                 
-                composable(Routes.EDITAR_META) {
+                composable<EditarMeta> {
                     metaEmEdicao?.let { meta ->
                         TelaEditarMeta(
                             metaOriginal = meta,
@@ -131,11 +132,11 @@ fun AppNavigation() {
                 }
 
                 
-                composable(Routes.PERFIL) {
+                composable<Perfil> {
                     TelaPerfil(
                         aoSairDaConta = {
-                            navController.navigate(Routes.LOGIN) {
-                                popUpTo(Routes.METAS) { inclusive = true }
+                            navController.navigate(Login) {
+                                popUpTo<Metas> { inclusive = true }
                             }
                         }
                     )
@@ -143,14 +144,24 @@ fun AppNavigation() {
             }
         }
 
-        if (rotaAtual != Routes.LOGIN && rotaAtual != Routes.CADASTRO) {
+        val mostraBarraNavegacao = destino?.hasRoute<Login>() != true
+                && destino?.hasRoute<Cadastro>() != true
+
+        if (mostraBarraNavegacao) {
             BarraNavegacao(
-                telaAtual = rotaAtual,
-                aoMudarTela = { novaRota ->
-                    navController.navigate(novaRota) {
+                destino = destino,
+                aoNavegarParaMetas = {
+                    navController.navigate(Metas) {
                         launchSingleTop = true
                         restoreState = true
-                        popUpTo(Routes.METAS) { saveState = true }
+                        popUpTo<Metas> { saveState = true }
+                    }
+                },
+                aoNavegarParaPerfil = {
+                    navController.navigate(Perfil) {
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo<Metas> { saveState = true }
                     }
                 }
             )

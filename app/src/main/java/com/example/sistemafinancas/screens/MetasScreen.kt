@@ -33,11 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.sistemafinancas.Meta
 
 @Composable
-fun TelaMetas(
-    metas: List<Meta>,
-    aoClicarNovaMeta: () -> Unit,
-    aoClicarNaMeta: (Meta) -> Unit
-) {
+fun TelaMetas(metas: List<Meta>, aoClicarNovaMeta: () -> Unit, aoClicarNaMeta: (Meta) -> Unit) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(text = "Metas", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
         Text(

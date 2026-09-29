@@ -16,10 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.example.sistemafinancas.R
 
 @Composable
-fun BarraNavegacao(telaAtual: String, aoMudarTela: (String) -> Unit) {
+fun BarraNavegacao(
+    destino: NavDestination?,
+    aoNavegarParaMetas: () -> Unit,
+    aoNavegarParaPerfil: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -30,12 +36,16 @@ fun BarraNavegacao(telaAtual: String, aoMudarTela: (String) -> Unit) {
     ) {
 
         
-        val corMetas = if (telaAtual in listOf("metas", "nova_meta", "editar_meta")) Color.Black else Color.Gray
+        val corMetas = if (
+            destino?.hasRoute<Metas>() == true
+            || destino?.hasRoute<NovaMeta>() == true
+            || destino?.hasRoute<EditarMeta>() == true
+        ) Color.Black else Color.Gray
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { aoMudarTela("metas") },
+                .clickable { aoNavegarParaMetas() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -47,12 +57,12 @@ fun BarraNavegacao(telaAtual: String, aoMudarTela: (String) -> Unit) {
         }
 
       
-        val corPerfil = if (telaAtual == "perfil") Color.Black else Color.Gray
+        val corPerfil = if (destino?.hasRoute<Perfil>() == true) Color.Black else Color.Gray
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { aoMudarTela("perfil") },
+                .clickable { aoNavegarParaPerfil() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
