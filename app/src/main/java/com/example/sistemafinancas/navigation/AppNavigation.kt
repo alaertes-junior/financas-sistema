@@ -25,7 +25,7 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rotaAtual = navBackStackEntry?.destination?.route ?: Routes.LOGIN
 
-    // --- ESTADOS DO APP ---
+   
     var proximoId by remember { mutableIntStateOf(5) }
     var listaMetas by remember { mutableStateOf(
         listOf(
@@ -37,14 +37,14 @@ fun AppNavigation() {
     ) }
     var metaEmEdicao by remember { mutableStateOf<Meta?>(null) }
 
-    // --- ESTADO DE AUTENTICAÇÃO ---
+
     var usuariosCadastrados by remember { mutableStateOf(mapOf<String, String>()) }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Box(modifier = Modifier.weight(1f)) {
             NavHost(navController = navController, startDestination = Routes.LOGIN) {
 
-                // === 1. LOGIN ===
+                
                 composable(Routes.LOGIN) {
                     LoginScreen(
                         aoEntrar = { email, senha ->
@@ -61,7 +61,7 @@ fun AppNavigation() {
                     )
                 }
 
-                // === 2. CADASTRO ===
+         
                 composable(Routes.CADASTRO) {
                     CadastroScreen(
                         aoSalvar = { email, senha ->
@@ -79,7 +79,7 @@ fun AppNavigation() {
                     )
                 }
 
-                // === 3. METAS ===
+            
                 composable(Routes.METAS) {
                     TelaMetas(
                         metas = listaMetas,
@@ -91,7 +91,7 @@ fun AppNavigation() {
                     )
                 }
 
-                // === 4. NOVA META ===
+              
                 composable(Routes.NOVA_META) {
                     TelaNovaPoupanca(
                         aoCriarMeta = { nome, categoria, tipo, guardado, objetivo ->
@@ -111,7 +111,7 @@ fun AppNavigation() {
                     )
                 }
 
-                // === 5. EDITAR META ===
+                
                 composable(Routes.EDITAR_META) {
                     metaEmEdicao?.let { meta ->
                         TelaEditarMeta(
@@ -130,7 +130,7 @@ fun AppNavigation() {
                     }
                 }
 
-                // === 6. PERFIL ===
+                
                 composable(Routes.PERFIL) {
                     TelaPerfil(
                         aoSairDaConta = {
