@@ -32,7 +32,7 @@ fun TelaPerfil(aoSairDaConta: () -> Unit) {
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
-        // FOTO DE PERFIL
+      
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -47,9 +47,9 @@ fun TelaPerfil(aoSairDaConta: () -> Unit) {
             )
         }
 
-        Spacer(modifier = Modifier.height(40.dp)) // Espaçamento ajustado
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // ITENS DO MENU
+       
         ItemMenuPerfil(
             texto = "Preferências da conta",
             icone = R.drawable.ic_settings,
@@ -76,7 +76,7 @@ fun TelaPerfil(aoSairDaConta: () -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // BOTÃO SAIR
+     
         OutlinedButton(
             onClick = aoSairDaConta,
             modifier = Modifier.fillMaxWidth(),
@@ -89,7 +89,7 @@ fun TelaPerfil(aoSairDaConta: () -> Unit) {
     }
 }
 
-// --- BOTÃO DO MENU DO PERFIL ---
+
 @Composable
 fun ItemMenuPerfil(texto: String, icone: Int, onClick: () -> Unit) {
     Box(
