@@ -1,4 +1,4 @@
-package com.example.sistemafinancas
+package com.example.sistemafinancas.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.sistemafinancas.Meta
 
 @Composable
 fun TelaMetas(
@@ -61,8 +62,6 @@ fun TelaMetas(
         }
     }
 }
-
-// --- COMPONENTE VISUAL DA META UTILIZANDO CARD ---
 @Composable
 fun ItemMetaCard(meta: Meta, aoClicar: () -> Unit) {
     Card(
