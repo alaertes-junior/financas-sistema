@@ -1,170 +1,141 @@
 package com.example.sistemafinancas.navigation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.sistemafinancas.Meta
-import com.example.sistemafinancas.screens.CadastroScreen
-import com.example.sistemafinancas.screens.LoginScreen
-import com.example.sistemafinancas.screens.TelaEditarMeta
-import com.example.sistemafinancas.screens.TelaMetas
-import com.example.sistemafinancas.screens.TelaNovaPoupanca
-import com.example.sistemafinancas.screens.TelaPerfil
-import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.toRoute
+import com.example.sistemafinancas.auth.SessaoUsuario
+import com.example.sistemafinancas.ui.screens.CadastroScreen
+import com.example.sistemafinancas.ui.screens.DespesaCadastroScreen
+import com.example.sistemafinancas.ui.screens.DespesaEditarScreen
+import com.example.sistemafinancas.ui.screens.DespesasScreen
+import com.example.sistemafinancas.ui.screens.LoginScreen
+import com.example.sistemafinancas.ui.screens.MetaCadastroScreen
+import com.example.sistemafinancas.ui.screens.MetaEditarScreen
+import com.example.sistemafinancas.ui.screens.MetasScreen
+import com.example.sistemafinancas.ui.screens.PerfilScreen
+import com.example.sistemafinancas.ui.screens.UsuarioEditarScreen
+import com.example.sistemafinancas.ui.screens.UsuarioScreen
+import com.example.sistemafinancas.ui.viewmodel.AuthViewModel
+import com.example.sistemafinancas.ui.viewmodel.DespesaViewModel
+import com.example.sistemafinancas.ui.viewmodel.MetaViewModel
+import com.example.sistemafinancas.ui.viewmodel.UsuarioViewModel
 
 @Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val destino = navBackStackEntry?.destination
+fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifier) {
+    val entradaAtual by navController.currentBackStackEntryAsState()
+    val destino = entradaAtual?.destination
+    val usuarioAtual = SessaoUsuario.usuarioId
 
-   
-    var proximoId by remember { mutableIntStateOf(5) }
-    var listaMetas by remember { mutableStateOf(
-        listOf(
-            Meta(1, "Casa Própria", "Casa própria", "Imóvel", 25000.0, 90000.0),
-            Meta(2, "Nivus 2024", "Automóvel", "Veículo", 18500.0, 30000.0),
-            Meta(3, "Casamento", "Viagem", "Evento", 7425.0, 20000.0),
-            Meta(4, "Emergência", "Reserva", "Reserva", 12000.0, 15000.0)
-        )
-    ) }
-    var metaEmEdicao by remember { mutableStateOf<Meta?>(null) }
-
-
-    var usuariosCadastrados by remember { mutableStateOf(mapOf<String, String>()) }
-
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        Box(modifier = Modifier.weight(1f)) {
-            NavHost(navController = navController, startDestination = Login) {
-
-                
-                composable<Login> {
-                    LoginScreen(
-                        aoEntrar = { email, senha ->
-                            if (usuariosCadastrados.containsKey(email) && usuariosCadastrados[email] == senha) {
-                                navController.navigate(Metas) {
-                                    popUpTo<Login> { inclusive = true }
-                                }
-                                ""
-                            } else {
-                                "E-mail ou senha inválidos."
-                            }
-                        },
-                        aoIrParaCadastro = { navController.navigate(Cadastro) }
-                    )
-                }
-
-         
-                composable<Cadastro> {
-                    CadastroScreen(
-                        aoSalvar = { email, senha ->
-                            if (email.isBlank() || senha.isBlank()) {
-                                "E-mail e senha não podem ficar em branco."
-                            } else if (usuariosCadastrados.containsKey(email)) {
-                                "Este e-mail já está cadastrado."
-                            } else {
-                                usuariosCadastrados = usuariosCadastrados + (email to senha)
-                                navController.popBackStack()
-                                ""
-                            }
-                        },
-                        aoVoltar = { navController.popBackStack() }
-                    )
-                }
-
-            
-                composable<Metas> {
-                    TelaMetas(
-                        metas = listaMetas,
-                        aoClicarNovaMeta = { navController.navigate(NovaMeta) },
-                        aoClicarNaMeta = { metaClicada ->
-                            metaEmEdicao = metaClicada
-                            navController.navigate(EditarMeta)
-                        }
-                    )
-                }
-
-              
-                composable<NovaMeta> {
-                    TelaNovaPoupanca(
-                        aoCriarMeta = { nome, categoria, tipo, guardado, objetivo ->
-                            val novaMeta = Meta(
-                                id = proximoId,
-                                nome = nome,
-                                categoria = categoria,
-                                tipo = tipo,
-                                valorGuardado = guardado,
-                                valorObjetivo = objetivo
-                            )
-                            proximoId++
-                            listaMetas = listaMetas + novaMeta
-                            navController.popBackStack()
-                        },
-                        aoCancelar = { navController.popBackStack() }
-                    )
-                }
-
-                
-                composable<EditarMeta> {
-                    metaEmEdicao?.let { meta ->
-                        TelaEditarMeta(
-                            metaOriginal = meta,
-                            aoSalvar = { metaAtualizada ->
-                                val novaLista = mutableListOf<Meta>()
-                                listaMetas.forEach { item ->
-                                    if (item.id == metaAtualizada.id) novaLista.add(metaAtualizada)
-                                    else novaLista.add(item)
-                                }
-                                listaMetas = novaLista
-                                navController.popBackStack()
-                            },
-                            aoCancelar = { navController.popBackStack() }
-                        )
-                    }
-                }
-
-                
-                composable<Perfil> {
-                    TelaPerfil(
-                        aoSairDaConta = {
-                            navController.navigate(Login) {
-                                popUpTo<Metas> { inclusive = true }
-                            }
-                        }
-                    )
-                }
+    LaunchedEffect(destino, usuarioAtual) {
+        if (destino != null && !destino.ehRotaPublica() && usuarioAtual == null) {
+            navController.navigate(Login) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
             }
         }
+    }
 
-        val mostraBarraNavegacao = destino?.hasRoute<Login>() != true
-                && destino?.hasRoute<Cadastro>() != true
+    NavHost(navController = navController, startDestination = Login, modifier = modifier) {
+        composable<Login> {
+            LoginScreen(
+                authViewModel = viewModel(),
+                irParaMetas = { navController.navigate(Metas) { popUpTo(Login) { inclusive = true } } },
+                irParaCadastro = { navController.navigate(Cadastro) }
+            )
+        }
+        composable<Cadastro> {
+            CadastroScreen(authViewModel = viewModel(), aoConcluir = { navController.popBackStack() })
+        }
 
-        if (mostraBarraNavegacao) {
-            BarraNavegacao(
-                destino = destino,
-                aoNavegarParaMetas = {
-                    navController.navigate(Metas) {
-                        launchSingleTop = true
-                        restoreState = true
-                        popUpTo<Metas> { saveState = true }
-                    }
-                },
-                aoNavegarParaPerfil = {
-                    navController.navigate(Perfil) {
-                        launchSingleTop = true
-                        restoreState = true
-                        popUpTo<Metas> { saveState = true }
-                    }
+        // ----- Metas -----
+        composable<Metas> { entrada ->
+            val metaViewModel: MetaViewModel = viewModel()
+            RecarregarAoRetomar(entrada) { metaViewModel.listar() }
+            MetasScreen(
+                viewModel = metaViewModel,
+                irParaCadastro = { navController.navigate(CadastrarMeta) },
+                irParaEdicao = { navController.navigate(MetaEditar(it)) }
+            )
+        }
+        composable<CadastrarMeta> {
+            MetaCadastroScreen(viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+        composable<MetaEditar> { entrada ->
+            val rota = entrada.toRoute<MetaEditar>()
+            MetaEditarScreen(metaId = rota.id, viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+
+        // ----- Despesas -----
+        composable<Despesas> { entrada ->
+            val despesaViewModel: DespesaViewModel = viewModel()
+            RecarregarAoRetomar(entrada) { despesaViewModel.listar() }
+            DespesasScreen(
+                viewModel = despesaViewModel,
+                irParaCadastro = { navController.navigate(CadastrarDespesa) },
+                irParaEdicao = { navController.navigate(DespesaEditar(it)) }
+            )
+        }
+        composable<CadastrarDespesa> {
+            DespesaCadastroScreen(viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+        composable<DespesaEditar> { entrada ->
+            val rota = entrada.toRoute<DespesaEditar>()
+            DespesaEditarScreen(despesaId = rota.id, viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+
+        // ----- Usuários -----
+        composable<Usuarios> { entrada ->
+            val usuarioViewModel: UsuarioViewModel = viewModel()
+            RecarregarAoRetomar(entrada) { usuarioViewModel.listar() }
+            UsuarioScreen(
+                viewModel = usuarioViewModel,
+                irParaCadastro = { navController.navigate(CadastrarUsuario) },
+                irParaEdicao = { navController.navigate(UsuarioEditar(it)) }
+            )
+        }
+        composable<CadastrarUsuario> {
+            // Usuário logado criando outra conta: ao concluir, volta para a lista (NÃO vai para o Login).
+            val authViewModel: AuthViewModel = viewModel()
+            CadastroScreen(authViewModel = authViewModel, aoConcluir = { navController.popBackStack() })
+        }
+        composable<UsuarioEditar> { entrada ->
+            val rota = entrada.toRoute<UsuarioEditar>()
+            UsuarioEditarScreen(usuarioId = rota.id, viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+
+        composable<Perfil> {
+            PerfilScreen(
+                irParaMetas = { navController.navigate(Metas) { launchSingleTop = true } },
+                irParaUsuarios = { navController.navigate(Usuarios) { launchSingleTop = true } },
+                aoSairDaConta = {
+                    SessaoUsuario.encerrar()
+                    navController.navigate(Login) { popUpTo(0) { inclusive = true } }
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun RecarregarAoRetomar(entrada: NavBackStackEntry, acao: () -> Unit) {
+    val acaoAtual by rememberUpdatedState(acao)
+    DisposableEffect(entrada) {
+        val observador = LifecycleEventObserver { _, evento ->
+            if (evento == Lifecycle.Event.ON_RESUME) acaoAtual()
+        }
+        entrada.lifecycle.addObserver(observador)
+        onDispose { entrada.lifecycle.removeObserver(observador) }
     }
 }

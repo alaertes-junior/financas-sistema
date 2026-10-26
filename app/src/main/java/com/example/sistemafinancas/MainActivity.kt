@@ -3,44 +3,33 @@ package com.example.sistemafinancas
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.sistemafinancas.navigation.AppNavigation
+import com.example.sistemafinancas.navigation.Menu
+import com.example.sistemafinancas.navigation.ehRotaPublica
+import com.example.sistemafinancas.ui.theme.SistemaFinancasTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
-            AppNavigation()
+            SistemaFinancasTheme(darkTheme = false, dynamicColor = false) {
+                val navController = rememberNavController()
+                val entradaAtual by navController.currentBackStackEntryAsState()
+                val destino = entradaAtual?.destination
+                val mostrarMenu = destino != null && !destino.ehRotaPublica()
+
+                Scaffold(bottomBar = { if (mostrarMenu) Menu(navController) }) { innerPadding ->
+                    AppNavigation(navController = navController, modifier = Modifier.padding(innerPadding))
+                }
+            }
         }
     }
 }
-
-// --- ESTRUTURA DE DADOS ---
-data class Meta(
-    val id: Int,
-    val nome: String,
-    val categoria: String,
-    val tipo: String,
-    val valorGuardado: Double,
-    val valorObjetivo: Double
-)

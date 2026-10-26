@@ -1,4 +1,4 @@
-package com.example.sistemafinancas.screens
+package com.example.sistemafinancas.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +22,11 @@ import androidx.compose.ui.unit.sp
 import com.example.sistemafinancas.R
 
 @Composable
-fun TelaPerfil(aoSairDaConta: () -> Unit) {
+fun PerfilScreen(
+    irParaMetas: () -> Unit,
+    irParaUsuarios: () -> Unit,
+    aoSairDaConta: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,27 +55,15 @@ fun TelaPerfil(aoSairDaConta: () -> Unit) {
 
        
         ItemMenuPerfil(
-            texto = "Preferências da conta",
-            icone = R.drawable.ic_settings,
-            onClick = { }
-        )
-
-        ItemMenuPerfil(
-            texto = "Notificações",
-            icone = R.drawable.ic_bell,
-            onClick = { }
-        )
-
-        ItemMenuPerfil(
             texto = "Metas e orçamento",
             icone = R.drawable.ic_flag,
-            onClick = { }
+            onClick = irParaMetas
         )
 
         ItemMenuPerfil(
             texto = "Contas conectadas",
             icone = R.drawable.ic_profile,
-            onClick = { }
+            onClick = irParaUsuarios
         )
 
         Spacer(modifier = Modifier.height(32.dp))
