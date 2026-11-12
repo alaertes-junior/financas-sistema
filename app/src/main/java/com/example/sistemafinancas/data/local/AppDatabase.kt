@@ -43,12 +43,14 @@ internal class AppDatabase(context: Context) : SQLiteOpenHelper(
         db.execSQL("CREATE INDEX idx_metas_usuario ON metas(usuario_id)")
         criarDespesas(db)
         adicionarParcelas(db)
+        criarReceitasMoedasEImagem(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // Migrações incrementais. Cada bloco leva o banco da versão N-1 para N.
         if (oldVersion < 2) criarDespesas(db)
         if (oldVersion < 3) adicionarParcelas(db)
+        if (oldVersion < 4) criarReceitasMoedasEImagem(db)
     }
 
     private fun criarDespesas(db: SQLiteDatabase) {
@@ -71,7 +73,38 @@ internal class AppDatabase(context: Context) : SQLiteOpenHelper(
         db.execSQL("ALTER TABLE despesas ADD COLUMN parcelas_pagas INTEGER NOT NULL DEFAULT 0 CHECK(parcelas_pagas >= 0)")
     }
 
+    private fun criarReceitasMoedasEImagem(db: SQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE receitas(
+                id         INTEGER PRIMARY KEY,
+                usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+                descricao  TEXT    NOT NULL CHECK(length(descricao) BETWEEN 3 AND 100),
+                categoria  TEXT    NOT NULL CHECK(length(categoria) BETWEEN 1 AND 50),
+                tipo       TEXT    NOT NULL CHECK(tipo IN ('Fixa', 'Variável')),
+                valor      INTEGER NOT NULL CHECK(valor > 0),
+                recebida   INTEGER NOT NULL DEFAULT 0 CHECK(recebida IN (0, 1))
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX idx_receitas_usuario ON receitas(usuario_id)")
+        db.execSQL(
+            """
+            CREATE TABLE moedas_acompanhadas(
+                id            INTEGER PRIMARY KEY,
+                usuario_id    INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+                codigo        TEXT    NOT NULL CHECK(length(codigo) BETWEEN 3 AND 5),
+                apelido       TEXT    NOT NULL CHECK(length(apelido) BETWEEN 3 AND 50),
+                quantidade    INTEGER NOT NULL CHECK(quantidade > 0),
+                cotacao_alvo  INTEGER NOT NULL DEFAULT 0 CHECK(cotacao_alvo >= 0)
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX idx_moedas_usuario ON moedas_acompanhadas(usuario_id)")
+        db.execSQL("ALTER TABLE metas ADD COLUMN imagem_uri TEXT")
+    }
+
     private companion object {
-        const val VERSAO = 3
+        const val VERSAO = 4
     }
 }

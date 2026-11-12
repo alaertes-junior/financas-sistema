@@ -23,7 +23,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +55,8 @@ fun MetasScreen(
     if (viewModel.usuarioAtualId == null) { Text("Faça login para continuar."); return }
 
     var excluirId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var guardarId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var valorGuardar by rememberSaveable { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(text = "Metas", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
@@ -72,6 +78,7 @@ fun MetasScreen(
                 ItemMetaCard(
                     meta = meta,
                     habilitado = !viewModel.carregando,
+                    aoGuardar = { valorGuardar = ""; guardarId = meta.id },
                     aoEditar = { irParaEdicao(meta.id) },
                     aoExcluir = { excluirId = meta.id }
                 )
@@ -86,6 +93,36 @@ fun MetasScreen(
         ) {
             Text("+ Nova poupança", fontSize = 16.sp)
         }
+    }
+
+    val metaGuardar = viewModel.metas.firstOrNull { it.id == guardarId }
+    if (metaGuardar != null) {
+        AlertDialog(
+            onDismissRequest = { guardarId = null },
+            title = { Text("Guardar em \"${metaGuardar.nome}\"") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Já guardado: ${Formatos.formatarMoeda(metaGuardar.valorAtualCentavos)}",
+                        color = Color.Gray
+                    )
+                    OutlinedTextField(
+                        value = valorGuardar,
+                        onValueChange = { if (it.length <= 13) valorGuardar = it },
+                        label = { Text("Valor a somar (ex.: 150,00)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { guardarId = null; viewModel.guardarValor(metaGuardar.id, valorGuardar) },
+                    enabled = !viewModel.carregando && valorGuardar.isNotBlank()
+                ) { Text("Guardar") }
+            },
+            dismissButton = { TextButton(onClick = { guardarId = null }) { Text("Cancelar") } }
+        )
     }
 
     val selecionada = viewModel.metas.firstOrNull { it.id == excluirId }
@@ -106,7 +143,9 @@ fun MetasScreen(
 }
 
 @Composable
-private fun ItemMetaCard(meta: Meta, habilitado: Boolean, aoEditar: () -> Unit, aoExcluir: () -> Unit) {
+private fun ItemMetaCard(
+    meta: Meta, habilitado: Boolean, aoGuardar: () -> Unit, aoEditar: () -> Unit, aoExcluir: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -115,13 +154,17 @@ private fun ItemMetaCard(meta: Meta, habilitado: Boolean, aoEditar: () -> Unit, 
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val foto = lembrarImagem(meta.imagemUri)
                 Box(
                     modifier = Modifier
                         .size(60.dp)
+                        .clip(CircleShape)
                         .background(Color.White, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
+                    if (foto != null) {
+                        ImagemMeta(foto, "Foto de ${meta.nome}", Modifier.size(60.dp))
+                    } else Icon(
                         painter = painterResource(id = obterIconePorCategoria(meta.categoria)),
                         contentDescription = "Ícone de ${meta.categoria}",
                         modifier = Modifier.size(32.dp),
@@ -186,6 +229,7 @@ private fun ItemMetaCard(meta: Meta, habilitado: Boolean, aoEditar: () -> Unit, 
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = aoGuardar, enabled = habilitado) { Text("+ Guardar") }
                 TextButton(onClick = aoEditar, enabled = habilitado) { Text("Editar") }
                 TextButton(onClick = aoExcluir, enabled = habilitado) { Text("Excluir") }
             }

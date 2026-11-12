@@ -38,6 +38,12 @@ fun Menu(navController: NavHostController) {
     val emDespesas = destino?.hasRoute<Despesas>() == true
             || destino?.hasRoute<CadastrarDespesa>() == true
             || destino?.hasRoute<DespesaEditar>() == true
+    val emReceitas = destino?.hasRoute<Receitas>() == true
+            || destino?.hasRoute<CadastrarReceita>() == true
+            || destino?.hasRoute<ReceitaEditar>() == true
+    val emMoedas = destino?.hasRoute<Moedas>() == true
+            || destino?.hasRoute<CadastrarMoeda>() == true
+            || destino?.hasRoute<MoedaEditar>() == true
     val emUsuarios = destino?.hasRoute<Usuarios>() == true
             || destino?.hasRoute<CadastrarUsuario>() == true
             || destino?.hasRoute<UsuarioEditar>() == true
@@ -47,7 +53,7 @@ fun Menu(navController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -64,6 +70,12 @@ fun Menu(navController: NavHostController) {
             }
             ItemMenu(R.drawable.ic_dollar, "Despesas", emDespesas) {
                 navController.navigate(Despesas) { launchSingleTop = true }
+            }
+            ItemMenu(R.drawable.ic_briefcase, "Receitas", emReceitas) {
+                navController.navigate(Receitas) { launchSingleTop = true }
+            }
+            ItemMenu(R.drawable.ic_bell, "Moedas", emMoedas) {
+                navController.navigate(Moedas) { launchSingleTop = true }
             }
             ItemMenu(R.drawable.ic_profile, "Usuários", emUsuarios) {
                 navController.navigate(Usuarios) { launchSingleTop = true }
@@ -85,7 +97,7 @@ private fun RowScope.ItemMenu(
     Box(
         modifier = Modifier
             .weight(1f)
-            .padding(horizontal = 4.dp)
+            .padding(horizontal = 2.dp)
             .height(48.dp)
             .clip(CircleShape)
             .background(if (selecionado) Color(0xFF3A3A3A) else Color.Transparent)

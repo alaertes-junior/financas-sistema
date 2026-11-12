@@ -24,12 +24,20 @@ import com.example.sistemafinancas.ui.screens.LoginScreen
 import com.example.sistemafinancas.ui.screens.MetaCadastroScreen
 import com.example.sistemafinancas.ui.screens.MetaEditarScreen
 import com.example.sistemafinancas.ui.screens.MetasScreen
+import com.example.sistemafinancas.ui.screens.MoedaCadastroScreen
+import com.example.sistemafinancas.ui.screens.MoedaEditarScreen
+import com.example.sistemafinancas.ui.screens.MoedasScreen
+import com.example.sistemafinancas.ui.screens.ReceitaCadastroScreen
+import com.example.sistemafinancas.ui.screens.ReceitaEditarScreen
+import com.example.sistemafinancas.ui.screens.ReceitasScreen
 import com.example.sistemafinancas.ui.screens.PerfilScreen
 import com.example.sistemafinancas.ui.screens.UsuarioEditarScreen
 import com.example.sistemafinancas.ui.screens.UsuarioScreen
 import com.example.sistemafinancas.ui.viewmodel.AuthViewModel
 import com.example.sistemafinancas.ui.viewmodel.DespesaViewModel
 import com.example.sistemafinancas.ui.viewmodel.MetaViewModel
+import com.example.sistemafinancas.ui.viewmodel.MoedaViewModel
+import com.example.sistemafinancas.ui.viewmodel.ReceitaViewModel
 import com.example.sistemafinancas.ui.viewmodel.UsuarioViewModel
 
 @Composable
@@ -93,6 +101,42 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         composable<DespesaEditar> { entrada ->
             val rota = entrada.toRoute<DespesaEditar>()
             DespesaEditarScreen(despesaId = rota.id, viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+
+        // ----- Receitas -----
+        composable<Receitas> { entrada ->
+            val receitaViewModel: ReceitaViewModel = viewModel()
+            RecarregarAoRetomar(entrada) { receitaViewModel.listar() }
+            ReceitasScreen(
+                viewModel = receitaViewModel,
+                irParaCadastro = { navController.navigate(CadastrarReceita) },
+                irParaEdicao = { navController.navigate(ReceitaEditar(it)) }
+            )
+        }
+        composable<CadastrarReceita> {
+            ReceitaCadastroScreen(viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+        composable<ReceitaEditar> { entrada ->
+            val rota = entrada.toRoute<ReceitaEditar>()
+            ReceitaEditarScreen(receitaId = rota.id, viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+
+        // ----- Moedas acompanhadas (SQLite + API via Retrofit) -----
+        composable<Moedas> { entrada ->
+            val moedaViewModel: MoedaViewModel = viewModel()
+            RecarregarAoRetomar(entrada) { moedaViewModel.listar() }
+            MoedasScreen(
+                viewModel = moedaViewModel,
+                irParaCadastro = { navController.navigate(CadastrarMoeda) },
+                irParaEdicao = { navController.navigate(MoedaEditar(it)) }
+            )
+        }
+        composable<CadastrarMoeda> {
+            MoedaCadastroScreen(viewModel = viewModel(), voltar = { navController.popBackStack() })
+        }
+        composable<MoedaEditar> { entrada ->
+            val rota = entrada.toRoute<MoedaEditar>()
+            MoedaEditarScreen(moedaId = rota.id, viewModel = viewModel(), voltar = { navController.popBackStack() })
         }
 
         // ----- Usuários -----
