@@ -7,5 +7,7 @@ data class Meta(
     val categoria: String,
     val tipo: String,
     val valorAlvoCentavos: Long,
-    val valorAtualCentavos: Long
+    val valorAtualCentavos: Long,
+    /** Caminho (em context.filesDir) da foto escolhida na galeria, ou null. */
+    val imagemUri: String? = null
 )

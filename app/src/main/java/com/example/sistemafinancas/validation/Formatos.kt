@@ -22,4 +22,8 @@ object Formatos {
     /** 150050 -> "R$ 1.500,50" (para exibição). */
     fun formatarMoeda(centavos: Long): String =
         NumberFormat.getCurrencyInstance(LOCALE_BR).format(BigDecimal.valueOf(centavos, 2))
+
+    /** BigDecimal em reais -> "R$ 1.500,50". */
+    fun formatarReais(valor: BigDecimal): String =
+        NumberFormat.getCurrencyInstance(LOCALE_BR).format(valor)
 }

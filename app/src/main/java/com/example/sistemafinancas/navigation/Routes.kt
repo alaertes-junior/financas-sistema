@@ -15,6 +15,14 @@ import kotlinx.serialization.Serializable
 @Serializable data object CadastrarDespesa
 @Serializable data class DespesaEditar(val id: Long)
 
+@Serializable data object Receitas
+@Serializable data object CadastrarReceita
+@Serializable data class ReceitaEditar(val id: Long)
+
+@Serializable data object Moedas
+@Serializable data object CadastrarMoeda
+@Serializable data class MoedaEditar(val id: Long)
+
 @Serializable data object Usuarios
 @Serializable data object CadastrarUsuario
 @Serializable data class UsuarioEditar(val id: Long)
