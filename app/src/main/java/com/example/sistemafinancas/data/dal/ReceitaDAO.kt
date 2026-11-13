@@ -10,26 +10,35 @@ internal class ReceitaDAO(context: Context) {
     private val appContext = context.applicationContext
 
     private val colunas = arrayOf(
-        "id", "usuario_id", "descricao", "categoria", "tipo", "valor", "recebida"
+        "id", "usuario_id", "descricao", "categoria", "tipo", "valor", "recebida", "mes", "ano"
     )
 
     fun inserir(
-        usuarioId: Long, descricao: String, categoria: String, tipo: String, valor: Long, recebida: Boolean
+        usuarioId: Long, descricao: String, categoria: String, tipo: String,
+        valor: Long, recebida: Boolean, mes: Int, ano: Int
     ) {
         AppDatabase(appContext).use { db ->
             db.writableDatabase.insertOrThrow(
                 "receitas", null,
-                valores(descricao, categoria, tipo, valor, recebida).apply { put("usuario_id", usuarioId) }
+                valores(descricao, categoria, tipo, valor, recebida, mes, ano).apply { put("usuario_id", usuarioId) }
             )
         }
     }
 
-    fun listar(usuarioId: Long): List<Receita> = AppDatabase(appContext).use { db ->
+    fun listar(usuarioId: Long, mes: Int? = null, ano: Int? = null): List<Receita> = AppDatabase(appContext).use { db ->
+        val (selecao, argumentos) = when {
+            mes != null && ano != null ->
+                "usuario_id = ? AND mes = ? AND ano = ?" to arrayOf(usuarioId.toString(), mes.toString(), ano.toString())
+            ano != null ->
+                "usuario_id = ? AND ano = ?" to arrayOf(usuarioId.toString(), ano.toString())
+            else ->
+                "usuario_id = ?" to arrayOf(usuarioId.toString())
+        }
         db.readableDatabase.query(
             "receitas", colunas,
-            "usuario_id = ?", arrayOf(usuarioId.toString()),
+            selecao, argumentos,
             null, null,
-            "recebida, descricao COLLATE NOCASE, id"
+            "ano DESC, mes DESC, recebida, descricao COLLATE NOCASE, id"
         ).use { c ->
             buildList { while (c.moveToNext()) add(c.paraReceita()) }
         }
@@ -45,11 +54,11 @@ internal class ReceitaDAO(context: Context) {
 
     fun alterar(
         id: Long, usuarioId: Long, descricao: String, categoria: String, tipo: String,
-        valor: Long, recebida: Boolean
+        valor: Long, recebida: Boolean, mes: Int, ano: Int
     ) {
         AppDatabase(appContext).use { db ->
             val alterado = db.writableDatabase.update(
-                "receitas", valores(descricao, categoria, tipo, valor, recebida),
+                "receitas", valores(descricao, categoria, tipo, valor, recebida, mes, ano),
                 "id = ? AND usuario_id = ?", arrayOf(id.toString(), usuarioId.toString())
             )
             require(alterado == 1) { "Receita não encontrada. Atualize a lista." }
@@ -77,13 +86,16 @@ internal class ReceitaDAO(context: Context) {
     }
 
     private fun valores(
-        descricao: String, categoria: String, tipo: String, valor: Long, recebida: Boolean
+        descricao: String, categoria: String, tipo: String,
+        valor: Long, recebida: Boolean, mes: Int, ano: Int
     ) = ContentValues().apply {
         put("descricao", descricao)
         put("categoria", categoria)
         put("tipo", tipo)
         put("valor", valor)
         put("recebida", if (recebida) 1 else 0)
+        put("mes", mes)
+        put("ano", ano)
     }
 
     private fun Cursor.paraReceita() = Receita(
@@ -93,6 +105,8 @@ internal class ReceitaDAO(context: Context) {
         categoria = getString(3),
         tipo = getString(4),
         valorCentavos = getLong(5),
-        recebida = getInt(6) == 1
+        recebida = getInt(6) == 1,
+        mes = getInt(7),
+        ano = getInt(8)
     )
 }

@@ -7,7 +7,9 @@ data class Despesa(
     val tipo: String,
     val valorCentavos: Long,
     val parcelas: Int,
-    val parcelasPagas: Int
+    val parcelasPagas: Int,
+    val mes: Int,
+    val ano: Int
 ) {
     val valorParcelaCentavos: Long get() = (valorCentavos + parcelas / 2) / parcelas
     val quitada: Boolean get() = parcelasPagas >= parcelas

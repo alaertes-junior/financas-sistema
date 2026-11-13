@@ -73,4 +73,11 @@ fun DespesaFormulario(viewModel: DespesaViewModel) {
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         enabled = !viewModel.carregando, modifier = Modifier.fillMaxWidth()
     )
+    CamposCompetenciaMensal(
+        mes = viewModel.mes,
+        ano = viewModel.ano,
+        habilitado = !viewModel.carregando,
+        aoMudarMes = viewModel::mudarMes,
+        aoMudarAno = viewModel::mudarAno
+    )
 }

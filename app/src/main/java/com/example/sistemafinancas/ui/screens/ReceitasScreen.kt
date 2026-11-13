@@ -61,6 +61,13 @@ fun ReceitasScreen(
                     fontSize = 14.sp,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+                FiltroMensal(
+                    mesSelecionado = viewModel.filtroMes,
+                    anoSelecionado = viewModel.filtroAno,
+                    habilitado = !viewModel.carregando,
+                    aoSelecionarMes = viewModel::selecionarMesFiltro,
+                    aoAlterarAno = viewModel::alterarAnoFiltro
+                )
             }
         },
         bottomBar = {
@@ -75,7 +82,7 @@ fun ReceitasScreen(
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = 16.dp)) {
             viewModel.mensagem?.let { Text(it) }
             if (viewModel.carregando) CircularProgressIndicator()
-            if (!viewModel.carregando && viewModel.receitas.isEmpty()) Text("Nenhuma receita cadastrada.")
+            if (!viewModel.carregando && viewModel.receitas.isEmpty()) Text("Nenhuma receita cadastrada para este período.")
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -136,7 +143,7 @@ private fun ItemReceitaCard(
                 Etiqueta(receita.tipo.uppercase())
             }
             Text(
-                text = "${receita.categoria} • ${Formatos.formatarMoeda(receita.valorCentavos)}",
+                text = "${Formatos.formatarCompetencia(receita.mes, receita.ano)} • ${receita.categoria} • ${Formatos.formatarMoeda(receita.valorCentavos)}",
                 color = Color.Gray,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(top = 4.dp)

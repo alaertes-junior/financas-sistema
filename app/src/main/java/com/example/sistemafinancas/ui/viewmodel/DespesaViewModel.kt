@@ -27,6 +27,12 @@ class DespesaViewModel(application: Application) : AndroidViewModel(application)
     var despesa by mutableStateOf<Despesa?>(null)
         private set
 
+    // Filtro mensal da listagem (filtroMes == null exibe todos os meses do ano selecionado)
+    var filtroMes by mutableStateOf<Int?>(Formatos.mesAtual())
+        private set
+    var filtroAno by mutableStateOf(Formatos.anoAtual())
+        private set
+
     // Formulário
     var descricao by mutableStateOf("")
         private set
@@ -37,6 +43,10 @@ class DespesaViewModel(application: Application) : AndroidViewModel(application)
     var parcelas by mutableStateOf("1")
         private set
     var parcelasPagas by mutableStateOf("")
+        private set
+    var mes by mutableStateOf(Formatos.mesAtual())
+        private set
+    var ano by mutableStateOf(Formatos.anoAtual().toString())
         private set
 
     var mensagem by mutableStateOf<String?>(null)
@@ -72,9 +82,26 @@ class DespesaViewModel(application: Application) : AndroidViewModel(application)
     fun mudarValor(v: String)     { if (!carregando && v.length <= 13) valor = v }
     fun mudarParcelas(v: String)  { if (!carregando && v.length <= 3 && v.all(Char::isDigit)) parcelas = v }
     fun mudarParcelasPagas(v: String) { if (!carregando && v.length <= 3 && v.all(Char::isDigit)) parcelasPagas = v }
+    fun mudarMes(v: Int)          { if (!carregando && v in 1..12) mes = v }
+    fun mudarAno(v: String)       { if (!carregando && v.length <= 4 && v.all(Char::isDigit)) ano = v }
+
+    // ---------- Filtro Mensal ----------
+    fun selecionarMesFiltro(novoMes: Int?) {
+        if (carregando) return
+        filtroMes = novoMes
+        listar()
+    }
+
+    fun alterarAnoFiltro(delta: Int) {
+        val novoAno = (filtroAno + delta).coerceIn(2000, 2100)
+        if (carregando || novoAno == filtroAno) return
+        filtroAno = novoAno
+        listar()
+    }
 
     private class FormularioValidado(
-        val descricao: String, val tipo: String, val valor: Long, val parcelas: Int, val parcelasPagas: Int
+        val descricao: String, val tipo: String, val valor: Long,
+        val parcelas: Int, val parcelasPagas: Int, val mes: Int, val ano: Int
     )
 
     private fun validarFormulario(): FormularioValidado {
@@ -84,14 +111,17 @@ class DespesaViewModel(application: Application) : AndroidViewModel(application)
         val pagas = if (parcelasPagas.isBlank()) 0 else requireNotNull(parcelasPagas.toIntOrNull()) {
             "Informe as parcelas pagas."
         }
-        DespesaValidator.validar(descricaoLimpa, tipo, centavos, totalParcelas, pagas)
-        return FormularioValidado(descricaoLimpa, tipo, centavos, totalParcelas, pagas)
+        val anoInt = requireNotNull(ano.toIntOrNull()) { "Informe um ano válido (2000 a 2100)." }
+        DespesaValidator.validar(descricaoLimpa, tipo, centavos, totalParcelas, pagas, mes, anoInt)
+        return FormularioValidado(descricaoLimpa, tipo, centavos, totalParcelas, pagas, mes, anoInt)
     }
 
     // ---------- CRUD ----------
     fun listar() = executar {
         val usuarioId = SessaoUsuario.exigirUsuario()
-        despesas = withContext(Dispatchers.IO) { dao.listar(usuarioId) }
+        val m = filtroMes
+        val a = filtroAno
+        despesas = withContext(Dispatchers.IO) { dao.listar(usuarioId, m, a) }
     }
 
     fun buscarPorId(id: Long) {
@@ -106,13 +136,17 @@ class DespesaViewModel(application: Application) : AndroidViewModel(application)
             valor = Formatos.centavosParaTexto(d.valorCentavos)
             parcelas = d.parcelas.toString()
             parcelasPagas = d.parcelasPagas.toString()
+            mes = d.mes
+            ano = d.ano.toString()
         }
     }
 
     fun cadastrar() = executar {
         val usuarioId = SessaoUsuario.exigirUsuario()
         val f = validarFormulario()
-        withContext(Dispatchers.IO) { dao.inserir(usuarioId, f.descricao, f.tipo, f.valor, f.parcelas, f.parcelasPagas) }
+        withContext(Dispatchers.IO) {
+            dao.inserir(usuarioId, f.descricao, f.tipo, f.valor, f.parcelas, f.parcelasPagas, f.mes, f.ano)
+        }
         salvo = true
     }
 
@@ -120,15 +154,19 @@ class DespesaViewModel(application: Application) : AndroidViewModel(application)
         val usuarioId = SessaoUsuario.exigirUsuario()
         val selecionada = requireNotNull(despesa) { "Selecione uma despesa." }
         val f = validarFormulario()
-        withContext(Dispatchers.IO) { dao.alterar(selecionada.id, usuarioId, f.descricao, f.tipo, f.valor, f.parcelas, f.parcelasPagas) }
+        withContext(Dispatchers.IO) {
+            dao.alterar(selecionada.id, usuarioId, f.descricao, f.tipo, f.valor, f.parcelas, f.parcelasPagas, f.mes, f.ano)
+        }
         salvo = true
     }
 
     fun pagarParcela(id: Long) = executar {
         val usuarioId = SessaoUsuario.exigirUsuario()
+        val m = filtroMes
+        val a = filtroAno
         despesas = withContext(Dispatchers.IO) {
             dao.pagarParcela(id, usuarioId)
-            dao.listar(usuarioId)
+            dao.listar(usuarioId, m, a)
         }
     }
 

@@ -44,6 +44,7 @@ internal class AppDatabase(context: Context) : SQLiteOpenHelper(
         criarDespesas(db)
         adicionarParcelas(db)
         criarReceitasMoedasEImagem(db)
+        adicionarCompetenciaMensal(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -51,6 +52,7 @@ internal class AppDatabase(context: Context) : SQLiteOpenHelper(
         if (oldVersion < 2) criarDespesas(db)
         if (oldVersion < 3) adicionarParcelas(db)
         if (oldVersion < 4) criarReceitasMoedasEImagem(db)
+        if (oldVersion < 5) adicionarCompetenciaMensal(db)
     }
 
     private fun criarDespesas(db: SQLiteDatabase) {
@@ -104,7 +106,14 @@ internal class AppDatabase(context: Context) : SQLiteOpenHelper(
         db.execSQL("ALTER TABLE metas ADD COLUMN imagem_uri TEXT")
     }
 
+    private fun adicionarCompetenciaMensal(db: SQLiteDatabase) {
+        db.execSQL("ALTER TABLE despesas ADD COLUMN mes INTEGER NOT NULL DEFAULT 1 CHECK(mes BETWEEN 1 AND 12)")
+        db.execSQL("ALTER TABLE despesas ADD COLUMN ano INTEGER NOT NULL DEFAULT 2026 CHECK(ano BETWEEN 2000 AND 2100)")
+        db.execSQL("ALTER TABLE receitas ADD COLUMN mes INTEGER NOT NULL DEFAULT 1 CHECK(mes BETWEEN 1 AND 12)")
+        db.execSQL("ALTER TABLE receitas ADD COLUMN ano INTEGER NOT NULL DEFAULT 2026 CHECK(ano BETWEEN 2000 AND 2100)")
+    }
+
     private companion object {
-        const val VERSAO = 4
+        const val VERSAO = 5
     }
 }

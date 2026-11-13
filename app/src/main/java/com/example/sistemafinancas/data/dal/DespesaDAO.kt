@@ -10,26 +10,35 @@ internal class DespesaDAO(context: Context) {
     private val appContext = context.applicationContext
 
     private val colunas = arrayOf(
-        "id", "usuario_id", "descricao", "tipo", "valor", "parcelas", "parcelas_pagas"
+        "id", "usuario_id", "descricao", "tipo", "valor", "parcelas", "parcelas_pagas", "mes", "ano"
     )
 
     fun inserir(
-        usuarioId: Long, descricao: String, tipo: String, valor: Long, parcelas: Int, parcelasPagas: Int
+        usuarioId: Long, descricao: String, tipo: String, valor: Long,
+        parcelas: Int, parcelasPagas: Int, mes: Int, ano: Int
     ) {
         AppDatabase(appContext).use { db ->
             db.writableDatabase.insertOrThrow(
                 "despesas", null,
-                valores(descricao, tipo, valor, parcelas, parcelasPagas).apply { put("usuario_id", usuarioId) }
+                valores(descricao, tipo, valor, parcelas, parcelasPagas, mes, ano).apply { put("usuario_id", usuarioId) }
             )
         }
     }
 
-    fun listar(usuarioId: Long): List<Despesa> = AppDatabase(appContext).use { db ->
+    fun listar(usuarioId: Long, mes: Int? = null, ano: Int? = null): List<Despesa> = AppDatabase(appContext).use { db ->
+        val (selecao, argumentos) = when {
+            mes != null && ano != null ->
+                "usuario_id = ? AND mes = ? AND ano = ?" to arrayOf(usuarioId.toString(), mes.toString(), ano.toString())
+            ano != null ->
+                "usuario_id = ? AND ano = ?" to arrayOf(usuarioId.toString(), ano.toString())
+            else ->
+                "usuario_id = ?" to arrayOf(usuarioId.toString())
+        }
         db.readableDatabase.query(
             "despesas", colunas,
-            "usuario_id = ?", arrayOf(usuarioId.toString()),
+            selecao, argumentos,
             null, null,
-            "tipo, descricao COLLATE NOCASE, id"
+            "ano DESC, mes DESC, tipo, descricao COLLATE NOCASE, id"
         ).use { c ->
             buildList { while (c.moveToNext()) add(c.paraDespesa()) }
         }
@@ -45,11 +54,11 @@ internal class DespesaDAO(context: Context) {
 
     fun alterar(
         id: Long, usuarioId: Long, descricao: String, tipo: String, valor: Long,
-        parcelas: Int, parcelasPagas: Int
+        parcelas: Int, parcelasPagas: Int, mes: Int, ano: Int
     ) {
         AppDatabase(appContext).use { db ->
             val alterado = db.writableDatabase.update(
-                "despesas", valores(descricao, tipo, valor, parcelas, parcelasPagas),
+                "despesas", valores(descricao, tipo, valor, parcelas, parcelasPagas, mes, ano),
                 "id = ? AND usuario_id = ?", arrayOf(id.toString(), usuarioId.toString())
             )
             require(alterado == 1) { "Despesa não encontrada. Atualize a lista." }
@@ -81,13 +90,16 @@ internal class DespesaDAO(context: Context) {
     }
 
     private fun valores(
-        descricao: String, tipo: String, valor: Long, parcelas: Int, parcelasPagas: Int
+        descricao: String, tipo: String, valor: Long,
+        parcelas: Int, parcelasPagas: Int, mes: Int, ano: Int
     ) = ContentValues().apply {
         put("descricao", descricao)
         put("tipo", tipo)
         put("valor", valor)
         put("parcelas", parcelas)
         put("parcelas_pagas", parcelasPagas)
+        put("mes", mes)
+        put("ano", ano)
     }
 
     private fun Cursor.paraDespesa() = Despesa(
@@ -97,6 +109,8 @@ internal class DespesaDAO(context: Context) {
         tipo = getString(3),
         valorCentavos = getLong(4),
         parcelas = getInt(5),
-        parcelasPagas = getInt(6)
+        parcelasPagas = getInt(6),
+        mes = getInt(7),
+        ano = getInt(8)
     )
 }

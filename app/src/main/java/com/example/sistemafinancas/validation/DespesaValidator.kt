@@ -7,7 +7,8 @@ object DespesaValidator {
     val TIPOS = listOf(TIPO_FIXA, TIPO_VARIAVEL)
 
     fun validar(
-        descricao: String, tipo: String, valorCentavos: Long, parcelas: Int, parcelasPagas: Int
+        descricao: String, tipo: String, valorCentavos: Long, parcelas: Int, parcelasPagas: Int,
+        mes: Int, ano: Int
     ) {
         require(descricao.length in 3..100) { "Informe uma descrição entre 3 e 100 caracteres." }
         require(tipo in TIPOS) { "Selecione o tipo da despesa." }
@@ -16,5 +17,7 @@ object DespesaValidator {
         }
         require(parcelas in 1..MAX_PARCELAS) { "O número de parcelas deve ficar entre 1 e $MAX_PARCELAS." }
         require(parcelasPagas in 0..parcelas) { "As parcelas pagas não podem passar do total de parcelas." }
+        require(mes in 1..12) { "Selecione um mês válido (1 a 12)." }
+        require(ano in 2000..2100) { "Informe um ano válido (2000 a 2100)." }
     }
 }

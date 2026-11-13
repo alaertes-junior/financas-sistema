@@ -60,9 +60,16 @@ fun DespesasScreen(
             fontSize = 14.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
+        FiltroMensal(
+            mesSelecionado = viewModel.filtroMes,
+            anoSelecionado = viewModel.filtroAno,
+            habilitado = !viewModel.carregando,
+            aoSelecionarMes = viewModel::selecionarMesFiltro,
+            aoAlterarAno = viewModel::alterarAnoFiltro
+        )
         viewModel.mensagem?.let { Text(it) }
         if (viewModel.carregando) CircularProgressIndicator()
-        if (!viewModel.carregando && viewModel.despesas.isEmpty()) Text("Nenhuma despesa cadastrada.")
+        if (!viewModel.carregando && viewModel.despesas.isEmpty()) Text("Nenhuma despesa cadastrada para este período.")
 
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -143,7 +150,7 @@ private fun ItemDespesaCard(
                 }
             }
             Text(
-                text = "${Formatos.formatarMoeda(despesa.valorPagoCentavos)} de ${Formatos.formatarMoeda(despesa.valorCentavos)}",
+                text = "${Formatos.formatarCompetencia(despesa.mes, despesa.ano)} • ${Formatos.formatarMoeda(despesa.valorPagoCentavos)} de ${Formatos.formatarMoeda(despesa.valorCentavos)}",
                 color = Color.Gray,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(top = 4.dp)

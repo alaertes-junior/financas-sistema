@@ -47,6 +47,14 @@ fun ReceitaFormulario(viewModel: ReceitaViewModel) {
         enabled = !viewModel.carregando, modifier = Modifier.fillMaxWidth()
     )
 
+    CamposCompetenciaMensal(
+        mes = viewModel.mes,
+        ano = viewModel.ano,
+        habilitado = !viewModel.carregando,
+        aoMudarMes = viewModel::mudarMes,
+        aoMudarAno = viewModel::mudarAno
+    )
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier

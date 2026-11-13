@@ -7,5 +7,7 @@ data class Receita(
     val categoria: String,
     val tipo: String,
     val valorCentavos: Long,
-    val recebida: Boolean
+    val recebida: Boolean,
+    val mes: Int,
+    val ano: Int
 )

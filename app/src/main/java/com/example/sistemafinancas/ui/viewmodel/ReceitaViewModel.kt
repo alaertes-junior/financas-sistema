@@ -27,6 +27,12 @@ class ReceitaViewModel(application: Application) : AndroidViewModel(application)
     var receita by mutableStateOf<Receita?>(null)
         private set
 
+    // Filtro mensal da listagem (filtroMes == null exibe todos os meses do ano selecionado)
+    var filtroMes by mutableStateOf<Int?>(Formatos.mesAtual())
+        private set
+    var filtroAno by mutableStateOf(Formatos.anoAtual())
+        private set
+
     // Formulário
     var descricao by mutableStateOf("")
         private set
@@ -37,6 +43,10 @@ class ReceitaViewModel(application: Application) : AndroidViewModel(application)
     var valor by mutableStateOf("")
         private set
     var recebida by mutableStateOf(false)
+        private set
+    var mes by mutableStateOf(Formatos.mesAtual())
+        private set
+    var ano by mutableStateOf(Formatos.anoAtual().toString())
         private set
 
     var mensagem by mutableStateOf<String?>(null)
@@ -72,22 +82,42 @@ class ReceitaViewModel(application: Application) : AndroidViewModel(application)
     fun mudarTipo(v: String)      { if (!carregando) tipo = v }
     fun mudarValor(v: String)     { if (!carregando && v.length <= 13) valor = v }
     fun mudarRecebida(v: Boolean) { if (!carregando) recebida = v }
+    fun mudarMes(v: Int)          { if (!carregando && v in 1..12) mes = v }
+    fun mudarAno(v: String)       { if (!carregando && v.length <= 4 && v.all(Char::isDigit)) ano = v }
+
+    // ---------- Filtro Mensal ----------
+    fun selecionarMesFiltro(novoMes: Int?) {
+        if (carregando) return
+        filtroMes = novoMes
+        listar()
+    }
+
+    fun alterarAnoFiltro(delta: Int) {
+        val novoAno = (filtroAno + delta).coerceIn(2000, 2100)
+        if (carregando || novoAno == filtroAno) return
+        filtroAno = novoAno
+        listar()
+    }
 
     private class FormularioValidado(
-        val descricao: String, val categoria: String, val tipo: String, val valor: Long, val recebida: Boolean
+        val descricao: String, val categoria: String, val tipo: String,
+        val valor: Long, val recebida: Boolean, val mes: Int, val ano: Int
     )
 
     private fun validarFormulario(): FormularioValidado {
         val descricaoLimpa = descricao.trim()
         val centavos = Formatos.paraCentavos(valor)
-        ReceitaValidator.validar(descricaoLimpa, categoria, tipo, centavos)
-        return FormularioValidado(descricaoLimpa, categoria, tipo, centavos, recebida)
+        val anoInt = requireNotNull(ano.toIntOrNull()) { "Informe um ano válido (2000 a 2100)." }
+        ReceitaValidator.validar(descricaoLimpa, categoria, tipo, centavos, mes, anoInt)
+        return FormularioValidado(descricaoLimpa, categoria, tipo, centavos, recebida, mes, anoInt)
     }
 
     // ---------- CRUD ----------
     fun listar() = executar {
         val usuarioId = SessaoUsuario.exigirUsuario()
-        receitas = withContext(Dispatchers.IO) { dao.listar(usuarioId) }
+        val m = filtroMes
+        val a = filtroAno
+        receitas = withContext(Dispatchers.IO) { dao.listar(usuarioId, m, a) }
     }
 
     fun buscarPorId(id: Long) {
@@ -102,13 +132,17 @@ class ReceitaViewModel(application: Application) : AndroidViewModel(application)
             tipo = r.tipo
             valor = Formatos.centavosParaTexto(r.valorCentavos)
             recebida = r.recebida
+            mes = r.mes
+            ano = r.ano.toString()
         }
     }
 
     fun cadastrar() = executar {
         val usuarioId = SessaoUsuario.exigirUsuario()
         val f = validarFormulario()
-        withContext(Dispatchers.IO) { dao.inserir(usuarioId, f.descricao, f.categoria, f.tipo, f.valor, f.recebida) }
+        withContext(Dispatchers.IO) {
+            dao.inserir(usuarioId, f.descricao, f.categoria, f.tipo, f.valor, f.recebida, f.mes, f.ano)
+        }
         salvo = true
     }
 
@@ -117,16 +151,18 @@ class ReceitaViewModel(application: Application) : AndroidViewModel(application)
         val selecionada = requireNotNull(receita) { "Selecione uma receita." }
         val f = validarFormulario()
         withContext(Dispatchers.IO) {
-            dao.alterar(selecionada.id, usuarioId, f.descricao, f.categoria, f.tipo, f.valor, f.recebida)
+            dao.alterar(selecionada.id, usuarioId, f.descricao, f.categoria, f.tipo, f.valor, f.recebida, f.mes, f.ano)
         }
         salvo = true
     }
 
     fun alternarRecebida(r: Receita) = executar {
         val usuarioId = SessaoUsuario.exigirUsuario()
+        val m = filtroMes
+        val a = filtroAno
         receitas = withContext(Dispatchers.IO) {
             dao.marcarRecebida(r.id, usuarioId, !r.recebida)
-            dao.listar(usuarioId)
+            dao.listar(usuarioId, m, a)
         }
     }
 

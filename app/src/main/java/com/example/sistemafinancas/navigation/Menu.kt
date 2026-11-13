@@ -74,7 +74,7 @@ fun Menu(navController: NavHostController) {
             ItemMenu(R.drawable.ic_briefcase, "Receitas", emReceitas) {
                 navController.navigate(Receitas) { launchSingleTop = true }
             }
-            ItemMenu(R.drawable.ic_bell, "Moedas", emMoedas) {
+            ItemMenu(R.drawable.ic_bitcoin, "Moedas", emMoedas) {
                 navController.navigate(Moedas) { launchSingleTop = true }
             }
             ItemMenu(R.drawable.ic_profile, "Usuários", emUsuarios) {
